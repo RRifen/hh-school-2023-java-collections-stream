@@ -6,7 +6,6 @@ import common.PersonService;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /*
 Задача 1
@@ -26,15 +25,13 @@ public class Task1 {
   public List<Person> findOrderedPersons(List<Integer> personIds) {
     Set<Person> persons = personService.findPersons(personIds);
 
-    // Мапа нужна, чтобы быстро доставать индекс id-шки (за O(1))
-    Map<Integer, Integer> idToIndex = IntStream.range(0, personIds.size())
-        .boxed()
-        .collect(Collectors.toMap(personIds::get, Function.identity()));
+    // Мапа нужна, чтобы быстро доставать персону по id (за O(1))
+    Map<Integer, Person> idToIndex = persons.stream()
+        .collect(Collectors.toMap(Person::getId, Function.identity()));
 
-    // Сортируем стрим по индексам в исходном листе id-шек
-    // Ассимптотика O(n*log(n))
-    return persons.stream()
-        .sorted(Comparator.comparingInt(person -> idToIndex.get(person.getId())))
+    // Ассимптотика O(n), т.к. мапим все id-шки в объекты
+    return personIds.stream()
+        .map(idToIndex::get)
         .toList();
   }
 }
