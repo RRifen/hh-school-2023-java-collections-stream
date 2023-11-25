@@ -2,9 +2,11 @@ package tasks;
 
 import common.Person;
 import common.PersonService;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /*
 Задача 1
@@ -23,6 +25,16 @@ public class Task1 {
 
   public List<Person> findOrderedPersons(List<Integer> personIds) {
     Set<Person> persons = personService.findPersons(personIds);
-    return Collections.emptyList();
+
+    // Мапа нужна, чтобы быстро доставать индекс id-шки (за O(1))
+    Map<Integer, Integer> idToIndex = IntStream.range(0, personIds.size())
+        .boxed()
+        .collect(Collectors.toMap(personIds::get, Function.identity()));
+
+    // Сортируем стрим по индексам в исходном листе id-шек
+    // Ассимптотика O(n*log(n))
+    return persons.stream()
+        .sorted(Comparator.comparingInt(person -> idToIndex.get(person.getId())))
+        .toList();
   }
 }

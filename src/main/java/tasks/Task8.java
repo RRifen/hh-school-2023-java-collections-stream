@@ -1,12 +1,8 @@
 package tasks;
 
 import common.Person;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -21,67 +17,67 @@ P.P.S Здесь ваши правки желательно прокоммент
  */
 public class Task8 {
 
-  private long count;
-
   //Не хотим выдывать апи нашу фальшивую персону, поэтому конвертим начиная со второй
+  // 1) Плохая практика удалять объекты из внешних коллекций, поэтому убрал удаление первой персоны
+  // 2) Вместо удаления первого объекта, добавил метод skip(1), чтобы пропустить первый объект
+  // 3) Также удалил проверку на пустой список, вроде как она и не нужна, код ниже итак вернет пустой список
   public List<String> getNames(List<Person> persons) {
-    if (persons.size() == 0) {
-      return Collections.emptyList();
-    }
-    persons.remove(0);
-    return persons.stream().map(Person::getFirstName).collect(Collectors.toList());
+    return persons.stream()
+        .skip(1)
+        .map(Person::getFirstName)
+        .toList();
   }
 
   //ну и различные имена тоже хочется
+  // А тут сама IDEA подсказала
+  // 1) Метод distinct не нужен, Set итак содержит уникальные элементы
+  // 2) Да и стрим не нужен, можно просто вызвать конструктор HashSet
   public Set<String> getDifferentNames(List<Person> persons) {
-    return getNames(persons).stream().distinct().collect(Collectors.toSet());
+    return new HashSet<>(getNames(persons));
   }
 
   //Для фронтов выдадим полное имя, а то сами не могут
+  // 1) В некоторых случаях, после проверок на null, в начало результата могли попасть разделители, решил проблему
+  // классом StringJoiner
+  // 2) Дважды вызывался метод getSecondName(), второй вызов изменил на getMiddleName()
   public String convertPersonToString(Person person) {
-    String result = "";
+    StringJoiner result = new StringJoiner(" ");
     if (person.getSecondName() != null) {
-      result += person.getSecondName();
+      result.add(person.getSecondName());
     }
 
     if (person.getFirstName() != null) {
-      result += " " + person.getFirstName();
+      result.add(person.getFirstName());
     }
 
-    if (person.getSecondName() != null) {
-      result += " " + person.getSecondName();
+    if (person.getMiddleName() != null) {
+      result.add(person.getMiddleName());
     }
-    return result;
+    return result.toString();
   }
 
   // словарь id персоны -> ее имя
+  // 1) У начальной мапы был указан initialCapacity = 1, выглядело странно
+  // 2) Реализация метода была изменена на стримы, судя по изначальной проверке в коллекции могли быть повторяющиеся
+  // персоны, поэтому в коллектор мапы была добавлена mergeFunction
   public Map<Integer, String> getPersonNames(Collection<Person> persons) {
-    Map<Integer, String> map = new HashMap<>(1);
-    for (Person person : persons) {
-      if (!map.containsKey(person.getId())) {
-        map.put(person.getId(), convertPersonToString(person));
-      }
-    }
-    return map;
+    return persons.stream()
+        .collect(Collectors.toMap(Person::getId, this::convertPersonToString, (p1, p2) -> p1));
   }
 
   // есть ли совпадающие в двух коллекциях персоны?
+  // 1) Если оставлять изначальную логику, то внутри блока if стоит добавить break
+  // 2) Есть метод Collections.disjoint(c1, c2), который делает тоже самое (не уверен, может есть какие-то нюансы)
   public boolean hasSamePersons(Collection<Person> persons1, Collection<Person> persons2) {
-    boolean has = false;
-    for (Person person1 : persons1) {
-      for (Person person2 : persons2) {
-        if (person1.equals(person2)) {
-          has = true;
-        }
-      }
-    }
-    return has;
+    return !Collections.disjoint(persons1, persons2);
   }
 
   //...
+  // 1) Непонятно зачем переменная вынесена в область видимости класса, все равно каждый раз обнуляется
+  // 2) forEach не нужен, легче вызвать терминальный метод count()
   public long countEven(Stream<Integer> numbers) {
-    count = 0;
-    numbers.filter(num -> num % 2 == 0).forEach(num -> count++);
-    return count;
+    return numbers
+        .filter(num -> num % 2 == 0)
+        .count();
   }
 }
