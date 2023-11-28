@@ -26,12 +26,12 @@ public class Task1 {
     Set<Person> persons = personService.findPersons(personIds);
 
     // Мапа нужна, чтобы быстро доставать персону по id (за O(1))
-    Map<Integer, Person> idToIndex = persons.stream()
+    Map<Integer, Person> idToPerson = persons.stream()
         .collect(Collectors.toMap(Person::getId, Function.identity()));
 
     // Ассимптотика O(n), т.к. мапим все id-шки в объекты
     return personIds.stream()
-        .map(idToIndex::get)
+        .map(idToPerson::get)
         .toList();
   }
 }

@@ -37,23 +37,13 @@ public class Task8 {
   }
 
   //Для фронтов выдадим полное имя, а то сами не могут
-  // 1) В некоторых случаях, после проверок на null, в начало результата могли попасть разделители, решил проблему
-  // классом StringJoiner
+  // 1) С помощью стрима убрал проверки на Null, и исправил баг с лишними разделителями
+  // (вот объекты, отфильтруй их и заджойни))
   // 2) Дважды вызывался метод getSecondName(), второй вызов изменил на getMiddleName()
   public String convertPersonToString(Person person) {
-    StringJoiner result = new StringJoiner(" ");
-    if (person.getSecondName() != null) {
-      result.add(person.getSecondName());
-    }
-
-    if (person.getFirstName() != null) {
-      result.add(person.getFirstName());
-    }
-
-    if (person.getMiddleName() != null) {
-      result.add(person.getMiddleName());
-    }
-    return result.toString();
+    return Stream.of(person.getSecondName(), person.getFirstName(), person.getMiddleName())
+        .filter(Objects::nonNull)
+        .collect(Collectors.joining(" "));
   }
 
   // словарь id персоны -> ее имя
@@ -67,9 +57,11 @@ public class Task8 {
 
   // есть ли совпадающие в двух коллекциях персоны?
   // 1) Если оставлять изначальную логику, то внутри блока if стоит добавить break
-  // 2) Есть метод Collections.disjoint(c1, c2), который делает тоже самое (не уверен, может есть какие-то нюансы)
+  // 2) Есть метод Collections.disjoint(c1, c2), который делает тоже самое (ассимптотика O(n^2) для не сетов),
+  // а если одна из коллекций - сет, то ассимптотика уже O(n) (внутри вызывается contains)
   public boolean hasSamePersons(Collection<Person> persons1, Collection<Person> persons2) {
-    return !Collections.disjoint(persons1, persons2);
+    Set<Person> persons = new HashSet<>(persons1);
+    return !Collections.disjoint(persons, persons2);
   }
 
   //...

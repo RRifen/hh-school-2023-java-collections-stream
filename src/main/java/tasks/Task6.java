@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /*
@@ -18,15 +19,19 @@ import java.util.stream.Collectors;
  */
 public class Task6 {
 
+  private static String convert(Person person, Area area) {
+    return person.getFirstName() + " - " + area.getName();
+  }
+
   public static Set<String> getPersonDescriptions(Collection<Person> persons,
                                                   Map<Integer, Set<Integer>> personAreaIds,
                                                   Collection<Area> areas) {
-    Map<Integer, String> idToAreaName = areas.stream()
-            .collect(Collectors.toMap(Area::getId, Area::getName));
+    Map<Integer, Area> idToArea = areas.stream()
+            .collect(Collectors.toMap(Area::getId, Function.identity()));
 
     return persons.stream()
         .flatMap((person) -> personAreaIds.getOrDefault(person.getId(), Collections.emptySet()).stream()
-            .map((areaId) -> person.getFirstName() + " - " + idToAreaName.get(areaId)))
+            .map((areaId) -> convert(person, idToArea.get(areaId))))
         .collect(Collectors.toSet());
   }
 }
